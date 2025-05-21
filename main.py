@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from typing import List, Dict
-import uuid
+from typing import List
 
 from skill_extractor import load_skills, load_aliases, extract_skills
 from fit_score_engine import compute_fit_score, get_verdict, load_cutoffs
@@ -13,7 +12,6 @@ skills_set = load_skills()
 aliases = load_aliases()
 cutoffs = load_cutoffs()
 
-# Load learning paths once
 with open("learning_paths.json") as f:
     learning_paths = json.load(f)
 
@@ -47,7 +45,7 @@ def evaluate_fit(data: FitRequest):
     track = []
     for skill in missing:
         if skill in learning_paths:
-            steps = learning_paths[skill]["steps"][:4]  # Limit to 4
+            steps = learning_paths[skill]["steps"][:4]
             track.append({"skill": skill, "steps": steps})
 
     return {
