@@ -1,0 +1,37 @@
+{
+    "Full Stack Engineer": [
+      "Node.js",
+      "Express",
+      "MongoDB",
+      "React",
+      "Docker"
+    ],
+    "DevOps Engineer": [
+      "Kubernetes",
+      "Terraform",
+      "AWS",
+      "CI/CD",
+      "Linux"
+    ],
+    "Frontend Developer": [
+      "JavaScript",
+      "React",
+      "CSS",
+      "HTML",
+      "Redux"
+    ],
+    "Backend Developer": [
+      "Python",
+      "Django",
+      "PostgreSQL",
+      "Docker",
+      "AWS"
+    ],
+    "Data Scientist": [
+      "Python",
+      "Pandas",
+      "Scikit-learn",
+      "TensorFlow",
+      "SQL"
+    ]
+  }
