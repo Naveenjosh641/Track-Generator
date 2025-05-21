@@ -1,29 +1,14 @@
 {
-    "fit_score_cutoffs": {
-      "strong_fit": 0.75,
-      "moderate_fit": 0.4,
-      "weak_fit": 0.0
-    },
-    "skill_alias_map": {
-      "Amazon Web Services": "AWS",
-      "aws cloud": "AWS",
-      "Google Cloud Platform": "GCP",
-      "Microsoft Azure": "Azure",
-      "node": "Node.js",
-      "nodejs": "Node.js",
-      "expressjs": "Express",
-      "react.js": "React",
-      "redux.js": "Redux",
-      "tensorflow": "TensorFlow",
-      "tf": "TensorFlow",
-      "scikit learn": "Scikit-learn",
-      "sklearn": "Scikit-learn",
-      "postgres": "PostgreSQL",
-      "cloud deployment": "Cloud Basics",
-      "cloud computing": "Cloud Basics",
-      "dockerized deployments": "Docker",
-      "continuous integration": "CI/CD",
-      "continuous deployment": "CI/CD"
-    },
-    "max_learning_steps_per_skill": 4
-  }
+  "fit_score_thresholds": {
+    "weak_fit": 0.4,
+    "moderate_fit": 0.7,
+    "strong_fit": 0.9
+  },
+  "skill_aliases": {
+    "Amazon Web Services": "AWS",
+    "Nodejs": "Node.js",
+    "PostgreSQL": "SQL",
+    "GCP": "Google Cloud Platform"
+  },
+  "max_steps_per_skill": 4
+}
