@@ -1,18 +1,16 @@
 import json
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 
-def load_cutoffs(config_file="config.json"):
-    with open(config_file) as f:
-        return json.load(f).get("fit_score_cutoffs", {})
+# Load thresholds from config.json
+with open('config.json') as f:
+    config = json.load(f)
+    thresholds = config.get("fit_score_thresholds", {})
 
-def compute_fit_score(resume_text, jd_text):
-    vectorizer = TfidfVectorizer()
-    tfidf = vectorizer.fit_transform([resume_text, jd_text])
-    score = cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0]
-    return round(float(score), 2)
-
-def get_verdict(score, cutoffs):
-    if score >= cutoffs.get("strong_fit", 0.75): return "strong_fit"
-    if score >= cutoffs.get("moderate_fit", 0.4): return "moderate_fit"
-    return "weak_fit"
+def compute_verdict(score):
+    if score >= thresholds.get("strong_fit", 0.9):
+        return "strong_fit"
+    elif score >= thresholds.get("moderate_fit", 0.7):
+        return "moderate_fit"
+    elif score >= thresholds.get("weak_fit", 0.4):
+        return "weak_fit"
+    else:
+        return "very_weak_fit"
