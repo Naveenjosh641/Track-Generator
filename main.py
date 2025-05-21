@@ -1,37 +1,29 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from pydantic import BaseModel
+from typing import List, Dict
+import uuid
+
+from skill_extractor import load_skills, load_aliases, extract_skills
+from fit_score_engine import compute_fit_score, get_verdict, load_cutoffs
+
 import json
-from fit_score_engine import compute_fit_score
-from skill_extractor import extract_skills, normalize_skills
-from typing import List
 
-# Load config and resources
-with open("config.json") as f:
-    config = json.load(f)
+app = FastAPI()
+skills_set = load_skills()
+aliases = load_aliases()
+cutoffs = load_cutoffs()
 
-with open("skills.json") as f:
-    skills_config = json.load(f)
-
+# Load learning paths once
 with open("learning_paths.json") as f:
     learning_paths = json.load(f)
-
-skill_alias_map = config["skill_alias_map"]
-fit_score_cutoffs = config["fit_score_cutoffs"]
-max_steps = config["max_learning_steps_per_skill"]
-
-# Initialize FastAPI app
-app = FastAPI(title="Resume–Role Fit Evaluator", version="1.0.0")
-
 
 class FitRequest(BaseModel):
     resume_text: str
     job_description: str
 
-
 class LearningStep(BaseModel):
     skill: str
     steps: List[str]
-
 
 class FitResponse(BaseModel):
     fit_score: float
@@ -39,53 +31,37 @@ class FitResponse(BaseModel):
     matched_skills: List[str]
     missing_skills: List[str]
     recommended_learning_track: List[LearningStep]
-    status: str = "success"
-
+    status: str
 
 @app.post("/evaluate-fit", response_model=FitResponse)
-def evaluate_fit(request: FitRequest):
-    resume_skills_raw = extract_skills(request.resume_text)
-    job_skills_raw = extract_skills(request.job_description)
+def evaluate_fit(data: FitRequest):
+    resume_skills = extract_skills(data.resume_text, skills_set, aliases)
+    jd_skills = extract_skills(data.job_description, skills_set, aliases)
 
-    resume_skills = normalize_skills(resume_skills_raw, skill_alias_map)
-    job_skills = normalize_skills(job_skills_raw, skill_alias_map)
+    matched = list(set(resume_skills) & set(jd_skills))
+    missing = list(set(jd_skills) - set(resume_skills))
 
-    matched_skills = [skill for skill in job_skills if skill in resume_skills]
-    missing_skills = [skill for skill in job_skills if skill not in resume_skills]
+    score = compute_fit_score(data.resume_text, data.job_description)
+    verdict = get_verdict(score, cutoffs)
 
-    fit_score = compute_fit_score(matched_skills, job_skills)
-
-    if fit_score >= fit_score_cutoffs["strong_fit"]:
-        verdict = "strong_fit"
-    elif fit_score >= fit_score_cutoffs["moderate_fit"]:
-        verdict = "moderate_fit"
-    else:
-        verdict = "weak_fit"
-
-    # Learning track generator
-    recommended_learning_track = []
-    for skill in missing_skills:
+    track = []
+    for skill in missing:
         if skill in learning_paths:
-            steps = learning_paths[skill][:max_steps]
-            recommended_learning_track.append({
-                "skill": skill,
-                "steps": steps
-            })
+            steps = learning_paths[skill]["steps"][:4]  # Limit to 4
+            track.append({"skill": skill, "steps": steps})
 
     return {
-        "fit_score": round(fit_score, 2),
+        "fit_score": score,
         "verdict": verdict,
-        "matched_skills": matched_skills,
-        "missing_skills": missing_skills,
-        "recommended_learning_track": recommended_learning_track,
+        "matched_skills": matched,
+        "missing_skills": missing,
+        "recommended_learning_track": track,
         "status": "success"
     }
 
-
 @app.get("/health")
-def health_check():
+def health():
     return {"status": "ok"}
-
 
 @app.get("/version")
 def version():
