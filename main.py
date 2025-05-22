@@ -1,24 +1,26 @@
+import os
 from fastapi import FastAPI
 from pydantic import BaseModel
-from typing import List
-
-from skill_extractor import load_skills, load_aliases, extract_skills
-from fit_score_engine import compute_fit_score, get_verdict, load_cutoffs
-
-import json
+from typing import List, Dict
 
 app = FastAPI()
-skills_set = load_skills()
-aliases = load_aliases()
-cutoffs = load_cutoffs()
 
-with open("learning_paths.json") as f:
-    learning_paths = json.load(f)
+# Health check endpoint
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
 
+# Version endpoint
+@app.get("/version")
+def version():
+    return {"model_version": "1.0.0"}
+
+# Input model for /evaluate-fit
 class FitRequest(BaseModel):
     resume_text: str
     job_description: str
 
+# Output model (optional, for strict typing)
 class LearningStep(BaseModel):
     skill: str
     steps: List[str]
@@ -33,34 +35,37 @@ class FitResponse(BaseModel):
 
 @app.post("/evaluate-fit", response_model=FitResponse)
 def evaluate_fit(data: FitRequest):
-    resume_skills = extract_skills(data.resume_text, skills_set, aliases)
-    jd_skills = extract_skills(data.job_description, skills_set, aliases)
-
-    matched = list(set(resume_skills) & set(jd_skills))
-    missing = list(set(jd_skills) - set(resume_skills))
-
-    score = compute_fit_score(data.resume_text, data.job_description)
-    verdict = get_verdict(score, cutoffs)
-
-    track = []
-    for skill in missing:
-        if skill in learning_paths:
-            steps = learning_paths[skill]["steps"][:4]
-            track.append({"skill": skill, "steps": steps})
-
+    # Dummy logic (replace with actual scoring + skill extraction)
     return {
-        "fit_score": score,
-        "verdict": verdict,
-        "matched_skills": matched,
-        "missing_skills": missing,
-        "recommended_learning_track": track,
+        "fit_score": 0.46,
+        "verdict": "moderate_fit",
+        "matched_skills": ["Python", "Cloud Basics"],
+        "missing_skills": ["Node.js", "MongoDB", "Docker", "AWS", "System Design"],
+        "recommended_learning_track": [
+            {
+                "skill": "Node.js",
+                "steps": [
+                    "Install Node.js and learn basic syntax",
+                    "Understand asynchronous programming in JS",
+                    "Build a REST API with Express.js",
+                    "Handle authentication and routing"
+                ]
+            },
+            {
+                "skill": "Docker",
+                "steps": [
+                    "Understand containers vs virtual machines",
+                    "Install Docker CLI and Docker Desktop",
+                    "Write a Dockerfile for a simple app",
+                    "Build and run Docker containers locally"
+                ]
+            }
+        ],
         "status": "success"
     }
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
-
-@app.get("/version")
-def version():
-    return {"model_version": "1.0.0"}
+# Optional: dynamic port for local testing
+if _name_ == "_main_":
+    import uvicorn
+    port = int(os.environ.get("PORT", 10000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
