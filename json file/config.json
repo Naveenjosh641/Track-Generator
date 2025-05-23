@@ -1,0 +1,14 @@
+{
+  "fit_score_thresholds": {
+    "weak_fit": 0.4,
+    "moderate_fit": 0.7,
+    "strong_fit": 0.9
+  },
+  "skill_aliases": {
+    "Amazon Web Services": "AWS",
+    "Nodejs": "Node.js",
+    "PostgreSQL": "SQL",
+    "GCP": "Google Cloud Platform"
+  },
+  "max_steps_per_skill": 4
+}
